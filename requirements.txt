@@ -1,6 +1,9 @@
+cudatoolkit==11.3
+datasets==1.18.3
 pandas==1.4.1
 pympi-ling==1.70.2
 speechbrain==0.5.11
 torch==1.10.2
 torchaudio==0.10.2
 tqdm==4.62.3
+transformers==4.16.2
