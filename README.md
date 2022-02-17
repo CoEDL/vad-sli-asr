@@ -1,8 +1,10 @@
 # VAD-SLI-ASR
 
-Python scripts for a speech processing pipeline with Voice Activity Detection (VAD), Spoken Language Identification (SLI), and Automatic Speech Recognition (ASR). Our use case involves using VAD to detect time regions in a language documentation recording where someone is speaking, then using SLI to classify each region as either English (eng) or Muruwari (zmu), and then using an English ASR model to transcribe regions detected as English. This pipeline outputs an ELAN .eaf file with the following tiers (`_vad`, `_sli`, and `_asr`):
+Python scripts for a speech processing pipeline with Voice Activity Detection (VAD), Spoken Language Identification (SLI), and Automatic Speech Recognition (ASR). Our use case involves using VAD to detect time regions in a language documentation recording where someone is speaking, then using SLI to classify each region as either English (eng) or Muruwari (zmu), and then using an English ASR model to transcribe regions detected as English. This pipeline outputs an ELAN .eaf file with the following tier structure (`_vad`, `_sli`, and `_asr`):
 
+<p align="center">
 ![](docs/elan-eg.png)
+</p>
 
 ## Set up
 
