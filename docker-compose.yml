@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  sli-asr:
+    image: huggingface/transformers-all-latest-gpu@sha256:82bab444a3b34ef06957b67adf253d7b2c85d08dfeeb82221212a0b29507893c
+    volumes:
+      - ${PWD}:/sli-asr
+    working_dir: /sli-asr
+    entrypoint:
+      - /bin/bash
+    stdin_open: true
+    tty: true
