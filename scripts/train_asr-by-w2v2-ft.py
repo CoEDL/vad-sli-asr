@@ -23,11 +23,11 @@ parser = ArgumentParser(
     description='Train an ASR model by fine-tuning a pre-trained wav2vec 2.0 model',
 )
 
-parser.add_argument('--repo_path_or_name', help = "Pre-trained wav2vec 2.0 model, local path or HuggingFace repo name")
-parser.add_argument('--output_dir', help = "The output directory where the model predictions and checkpoints will be written")
+parser.add_argument('repo_path_or_name', help = "Pre-trained wav2vec 2.0 model, local path or HuggingFace repo name")
+parser.add_argument('output_dir', help = "The output directory where the model predictions and checkpoints will be written")
 
-parser.add_argument('--train_tsv', help = "Training data. Two-column tab-separated file with 'path' (path to wav file) and 'sentence' (transcription)")
-parser.add_argument('--eval_tsv', help = "Evaluation data. Two-column tab-separated file with 'path' (path to wav file) and 'sentence' (transcription)")
+parser.add_argument('train_tsv', help = "Training data. Two-column tab-separated file with 'path' (path to wav file) and 'sentence' (transcription)")
+parser.add_argument('eval_tsv', help = "Evaluation data. Two-column tab-separated file with 'path' (path to wav file) and 'sentence' (transcription)")
 
 parser.add_argument('--use_target_vocab', default=True, help='Use a vocabulary created from target transcriptions (training and evaluation)')
 
@@ -38,10 +38,10 @@ args = parser.parse_args()
 logging.set_verbosity(args.hft_logging)
 
 # For debugging
-args.repo_path_or_name = "facebook/wav2vec2-large-robust-ft-swbd-300h"
-args.train_tsv = 'data/train-asr/train.tsv'
-args.eval_tsv  = 'data/train-asr/test.tsv'
-args.output_dir = 'data/asr-temp'
+# args.repo_path_or_name = "facebook/wav2vec2-large-robust-ft-swbd-300h"
+# args.train_tsv = 'data/train-asr/train.tsv'
+# args.eval_tsv  = 'data/train-asr/test.tsv'
+# args.output_dir = 'data/asr-temp'
 
 os.makedirs(args.output_dir, exist_ok=True)
 
