@@ -10,9 +10,9 @@ from datasets import (
     Audio,
     Dataset,
     DatasetDict,
+    disable_progress_bar,
     enable_progress_bar,
-    load_metric,
-    disable_progress_bar
+    load_metric
 )
 from typing import Dict, List, Union
 from pyctcdecode import build_ctcdecoder
@@ -205,14 +205,14 @@ def configure_w2v2_components(dataset, args, vocab_dict, w2v2_config={}):
 
     return model, processor
 
-def configure_lm(processor, output_dir):
+def configure_lm(processor, arpa_path, output_dir):
 
     vocab_dict = processor.tokenizer.get_vocab()
     sorted_vocab_dict = {k.lower(): v for k, v in sorted(vocab_dict.items(), key=lambda item: item[1])}
 
     decoder = build_ctcdecoder(
         labels=list(sorted_vocab_dict.keys()),
-        kenlm_model_path="data/bigram-lm/2gram_correct.arpa",
+        kenlm_model_path=arpa_path,
     )
 
     processor_with_lm = Wav2Vec2ProcessorWithLM(
