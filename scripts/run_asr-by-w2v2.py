@@ -1,6 +1,5 @@
 from argparse import ArgumentParser
 from datasets import Dataset
-from speechbrain.pretrained import EncoderClassifier
 from tqdm import tqdm
 from transformers import logging, AutoModelForCTC, AutoProcessor
 
@@ -16,8 +15,7 @@ parser = ArgumentParser(
     prog='run_asr-by-w2v2',
     description='Run automatic speech recognition (ASR) using wav2vec 2.0',
 )
-
-parser.add_argument('w2v2_cp_dir', help = "Directory containing model checkpoint")
+parser.add_argument('repo_path_or_name', help = "Pre-trained wav2vec 2.0 model, local path or HuggingFace repo name")
 parser.add_argument('wav_file',  help = "wav file to perform ASR on")
 
 parser.add_argument('--roi_tier', default="_sli", help = "Tier containing speech regions of interest to transcribe")
@@ -26,15 +24,12 @@ parser.add_argument('--roi_filter', default="eng", help = "Regular expression to
 parser.add_argument('--asr_tier',  default="_asr", help = "Tier to write transcriptions to")
 parser.add_argument('--overwrite', help = "overwrite _asr tier on existing .eaf file?", dest='overwrite', action='store_true')
 
-parser.add_argument('--cuda', help = "send model and data to GPU", dest='cuda', action='store_true')
-
-parser.set_defaults(overwrite=False, cuda=False)
+parser.set_defaults(overwrite=False, cuda=torch.cuda.is_available())
 
 args = parser.parse_args()
 
 logging.set_verbosity(40)
 
-assert os.path.isdir(args.w2v2_cp_dir), f"Checkpoint directory does not exist at: {args.logreg_pkl}"
 assert os.path.exists(args.wav_file), f"Specified wav file does not exist: {args.wav_file}"
 
 eaf_path   = os.path.splitext(args.wav_file)[0] + ".eaf"
@@ -97,12 +92,16 @@ if sample_rate != 16_000:
     samp_to_16k = torchaudio.transforms.Resample(orig_freq=sample_rate, new_freq=16_000)
     waveform    = samp_to_16k(waveform)
 
-model_path = glob.glob(os.path.join(args.w2v2_cp_dir, 'checkpoint-*'))[0]
-model      = AutoModelForCTC.from_pretrained(model_path)
-processor  = AutoProcessor.from_pretrained(args.w2v2_cp_dir)
+if os.path.isdir(args.repo_path_or_name):
+    model_path  = glob.glob(os.path.join(args.repo_path_or_name, 'checkpoint-*'))[0]
+    model       = AutoModelForCTC.from_pretrained(model_path)
+    processor   = AutoProcessor.from_pretrained(args.repo_path_or_name)
+else:
+    model      = AutoModelForCTC.from_pretrained(args.repo_path_or_name)
+    processor  = AutoProcessor.from_pretrained(args.repo_path_or_name)
 
-has_lm_dir = os.path.isdir(os.path.join(args.w2v2_cp_dir, 'language_model'))
-map_to_pred = make_map_to_pred(decode_with_lm=has_lm_dir)
+proc_has_lm = type(processor).__name__ == 'Wav2Vec2ProcessorWithLM'
+map_to_pred = make_map_to_pred(decode_with_lm=proc_has_lm)
 
 if args.cuda:
     model.to("cuda")
@@ -121,8 +120,13 @@ print("Running ASR on each region of interest ...")
 
 result = roi_dataset.map(map_to_pred, batched=True, batch_size=1, remove_columns=["speech"])
 
-for r in result:
-    eaf_data.add_annotation(args.asr_tier, start=r['start_ms'], end=r['end_ms'], value=r['transcription'])
+for index, region in enumerate(roi_annots):
+
+    start_ms, end_ms, annot = region
+
+    annot = result['transcription'][index] if annot == 'eng' else ''
+
+    eaf_data.add_annotation(args.asr_tier, start=start_ms, end=end_ms, value=annot)
 
 eaf_data.to_file(eaf_path)
 print(f"Transcribed regions written to {args.asr_tier} tier in {eaf_path}")
