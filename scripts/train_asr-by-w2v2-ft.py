@@ -5,6 +5,7 @@ import torch
 from argparse import ArgumentParser
 from datasets import load_metric
 from helpers.asr import (
+    configure_lm,
     configure_w2v2_components,
     DataCollatorCTCWithPadding,
     dataset_from_dict,
@@ -30,6 +31,8 @@ parser.add_argument('train_tsv', help = "Training data. Two-column tab-separated
 parser.add_argument('eval_tsv', help = "Evaluation data. Two-column tab-separated file with 'path' (path to wav file) and 'sentence' (transcription)")
 
 parser.add_argument('--use_target_vocab', default=True, help='Use a vocabulary created from target transcriptions (training and evaluation)')
+
+parser.add_argument('--lm_arpa', default=None, help='Path to language model .arpa file (optional)')
 
 parser.add_argument('--hft_logging', default=40, help='HuggingFace Transformers verbosity level (40 = errors, 30 = warnings, 20 = info, 10 = debug)')
 
@@ -64,6 +67,9 @@ w2v2_config = {
 dataset, vocab_dict = preprocess_text(dataset)
 
 model, processor = configure_w2v2_components(dataset, args, vocab_dict, w2v2_config)
+
+if args.lm_arpa is not None:
+    processor = configure_lm(processor, args.lm_arpa, args.output_dir)
 
 dataset = process_data(dataset, processor)
 
