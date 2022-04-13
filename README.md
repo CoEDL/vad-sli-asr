@@ -21,11 +21,11 @@ Python scripts for a speech processing pipeline with Voice Activity Detection (V
       ```bash
       docker-compose run --rm cpu
       ```
-    b. GPU pass-through (tested using CUDA 11.3, cuDNN 8200, and Docker 20.10.7 on host machine) 
+    b. GPU pass-through (tested using CUDA 11.3, cuDNN 8200, Docker 20.10.7 and [NVIDIA container toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#install-guide) installed on host machine) 
       ```
       docker-compose run --rm gpu
       ```
-   c. Manual setup. See the commands and commentary in the `Dockerfile` for step-by-step setup guide.
+   c. Manual setup. See the commands and commentary in the `Dockerfile` for the full set of dependencies.
 
 ### Data
 
@@ -53,21 +53,21 @@ We do not have permissions to release the Muruwari audio and transcriptions used
 
 #### Deployment
 
-Detect speech regions in `data/toy-example/hello-goodbye.wav` and (by default) write detected regions as annotations on `_vad` tier in a side-car ELAN file (default) `data/toy-example/hello-goodbye.eaf`
+Detect speech regions in `data/toy-example/raw/hello-goodbye.wav` and (by default) write detected regions as annotations on `_vad` tier in a side-car ELAN file (default) `data/toy-example/raw/hello-goodbye.eaf`
 
 ```bash
-python scripts/run_vad-by-silero.py data/toy-example/hello-goodbye.wav
+python scripts/run_vad-by-silero.py data/toy-example/raw/hello-goodbye.wav
 ```
 
 <p align="center">
-    <img src="https://user-images.githubusercontent.com/9938298/163074813-b26fca6a-78db-462a-877e-ba411b5d66d1.png">
+    <img src="https://user-images.githubusercontent.com/9938298/163090232-0b184b68-a408-49c8-94f7-73b0c9e20664.png">
 </p>
 
 ### SLI
 
 #### Training
 
-Use utterances supplied in `data/toy-example/clips` and train a logistic regression classifier with SpeechBrain embeddings as features and folder names (e.g. `eng`, `fra`) as training labels for the utterances, and save trained classifier to `data/toy-example/eng-fra_classifier.pkl`.
+Use utterances supplied in `data/toy-example/clips` and train a logistic regression classifier with SpeechBrain embeddings as features and folder names as training labels for the utterances (e.g. `eng`, `fra`), and save trained classifier to `data/toy-example/eng-fra_classifier.pkl`.
 
 ```
 python scripts/train_sli-by-sblr.py data/toy-example/clips data/toy-example/eng-fra_classifier.pkl
@@ -75,32 +75,32 @@ python scripts/train_sli-by-sblr.py data/toy-example/clips data/toy-example/eng-
 
 #### Deployment
 
-Use trained classifier located at `data/toy-example/eng-fra_classifier.pkl` to classify regions speech regions associated with `data/toy-example/hello-goodbye.wav` located on the `_vad` tier of `data/toy-example/hello-goodbye.eaf` and write the classified regions onto the `_sli` tier:
+Use trained classifier located at `data/toy-example/eng-fra_classifier.pkl` to classify regions speech regions associated with `data/toy-example/raw/hello-goodbye.wav` located on the `_vad` tier of `data/toy-example/raw/hello-goodbye.eaf` and write the classified regions onto the `_sli` tier:
 
 ```bash
-python scripts/run_sli-by-sblr.py data/toy-example/eng-fra_classifier.pkl data/toy-example/hello-goodbye.wav
+python scripts/run_sli-by-sblr.py data/toy-example/eng-fra_classifier.pkl data/toy-example/raw/hello-goodbye.wav
 ```
 
 <p align="center">
-    <img src="https://user-images.githubusercontent.com/9938298/163074811-d17a9e67-de87-4e72-8235-d58deb5510af.png">
+    <img src="https://user-images.githubusercontent.com/9938298/163090231-d929a4ef-c9a6-46ab-8510-80aba9e41354.png">
 </p>
 
 ### ASR
 
 #### Deployment (off-the-shelf model)
 
-Use the pre-trained `facebook/wav2vec2-large-robust-ft-swbd-300h` on [HuggingFace Hub](https://huggingface.co/facebook/wav2vec2-large-robust-ft-swbd-300h) to transcribe regions of interest of the audio file `data/toy-example/hello-goodbye.wav` (by default, regions of interest (ROI) are defined as those on the `_sli` tier matching the regular expression `eng`; note the optional `--roi_tier` and `--roi_regex` arguments):
+Use the pre-trained `facebook/wav2vec2-large-robust-ft-swbd-300h` on [HuggingFace Hub](https://huggingface.co/facebook/wav2vec2-large-robust-ft-swbd-300h) to transcribe regions of interest in the audio file `data/toy-example/raw/hello-goodbye.wav` (by default, regions of interest (ROI) are defined as those on the `_sli` tier matching the regular expression `eng`; note the optional `--roi_tier` and `--roi_filter` arguments):
 
 ```bash
 python scripts/run_asr-by-w2v2.py \
     facebook/wav2vec2-large-robust-ft-swbd-300h \
-    data/toy-example/hello-goodbye.wav \
+    data/toy-example/raw/hello-goodbye.wav \
     --roi_tier _sli \
-    --roi_regex eng
+    --roi_filter eng
 ```
 
 <p align="center">
-    <img src="https://user-images.githubusercontent.com/9938298/163074808-c34bf7b0-f832-4874-ba8e-dbc770ba439c.png">
+    <img src="https://user-images.githubusercontent.com/9938298/163090228-e7e73b61-d946-433f-b720-5f13d31557d8.png">
 </p>
 
 #### Training (fine-tuning an off-the-shelf model)
@@ -138,5 +138,5 @@ python scripts/train_asr-by-w2v2-ft.py \
 ```bash
 python scripts/run_asr-by-w2v2.py \
     data/toy-example/my-fine-tuned-model \          # Path to fine-tuned model
-    data/toy-example/hello-goodbye.wav
+    data/toy-example/raw/hello-goodbye.wav
 ```
