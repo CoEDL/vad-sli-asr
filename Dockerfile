@@ -50,6 +50,7 @@ RUN pip install datasets==2.0.0 \
     pandas==1.4.2 \
     pympi-ling==1.70.2 \
     speechbrain==0.5.11 \
+    jiwer==2.3.0 \
     # Keep torch requirements here to stop pyannote from upgrading to latest versions \
     torch==1.10.1 \
     torchaudio==0.10.1 \
