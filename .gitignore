@@ -2,3 +2,7 @@ env
 data/*
 !data/.gitkeep
 !data/toy-example/
+__pycache__
+tmp/*
+!tmp/.gitkeep
+!tmp/cache/.gitkeep

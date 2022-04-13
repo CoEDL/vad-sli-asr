@@ -22,6 +22,8 @@ parser.add_argument('--sli_tier',  default="_sli", help = "Tier to write classif
 parser.add_argument('--overwrite', help = "overwrite _vad tier on existing .eaf file?", dest='overwrite', action='store_true')
 parser.add_argument('--rm_vad_tier', help = "remove _vad tier after finishing SLI task", dest='rm_vad_tier', action='store_true')
 
+parser.add_argument('--cache_dir',  default="tmp/cache", help = "Directory for downloading pre-trained models")
+
 parser.set_defaults(overwrite=False, rm_vad_tier=False)
 
 args = parser.parse_args()
@@ -63,7 +65,7 @@ if sample_rate != 16_000:
     samp_to_16k = torchaudio.transforms.Resample(orig_freq=sample_rate, new_freq=16_000)
     waveform    = samp_to_16k(waveform)
 
-sb_embd = EncoderClassifier.from_hparams(source="speechbrain/lang-id-voxlingua107-ecapa", savedir="tmp/")
+sb_embd = EncoderClassifier.from_hparams(source="speechbrain/lang-id-voxlingua107-ecapa", savedir=args.cache_dir)
 sli_clf = pickle.load(open(args.logreg_pkl, 'rb'))
 
 vad_regions = eaf_data.get_annotation_data_for_tier(args.vad_tier)

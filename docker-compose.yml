@@ -5,6 +5,7 @@ services:
     image: coedl/vad-sli-asr:21.05
     volumes:
       - ${PWD}:/workspace
+      - ${PWD}/tmp/cache:/root/.cache
     working_dir: /workspace
     entrypoint:
       - /bin/bash
@@ -15,6 +16,7 @@ services:
     image: coedl/vad-sli-asr:21.05
     volumes:
       - ${PWD}:/workspace
+      - ${PWD}/tmp/cache:/root/.cache
     working_dir: /workspace
     entrypoint:
       - /bin/bash

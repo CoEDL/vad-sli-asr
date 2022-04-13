@@ -24,6 +24,8 @@ parser.add_argument('--roi_filter', default="eng", help = "Regular expression to
 parser.add_argument('--asr_tier',  default="_asr", help = "Tier to write transcriptions to")
 parser.add_argument('--overwrite', help = "overwrite _asr tier on existing .eaf file?", dest='overwrite', action='store_true')
 
+parser.add_argument('--cache_dir',  default="tmp/cache", help = "Directory for downloading pre-trained models")
+
 parser.set_defaults(overwrite=False, cuda=torch.cuda.is_available())
 
 args = parser.parse_args()
@@ -94,11 +96,11 @@ if sample_rate != 16_000:
 
 if os.path.isdir(args.repo_path_or_name):
     model_path  = glob.glob(os.path.join(args.repo_path_or_name, 'checkpoint-*'))[0]
-    model       = AutoModelForCTC.from_pretrained(model_path)
-    processor   = AutoProcessor.from_pretrained(args.repo_path_or_name)
+    model       = AutoModelForCTC.from_pretrained(model_path, cache_dir=args.cache_dir)
+    processor   = AutoProcessor.from_pretrained(args.repo_path_or_name, cache_dir=args.cache_dir)
 else:
-    model      = AutoModelForCTC.from_pretrained(args.repo_path_or_name)
-    processor  = AutoProcessor.from_pretrained(args.repo_path_or_name)
+    model      = AutoModelForCTC.from_pretrained(args.repo_path_or_name, cache_dir=args.cache_dir)
+    processor  = AutoProcessor.from_pretrained(args.repo_path_or_name, cache_dir=args.cache_dir)
 
 proc_has_lm = type(processor).__name__ == 'Wav2Vec2ProcessorWithLM'
 map_to_pred = make_map_to_pred(decode_with_lm=proc_has_lm)

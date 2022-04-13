@@ -19,6 +19,8 @@ parser.add_argument('--eaf_file',  help = "write to sidecar file (e.g. myfile.ea
 parser.add_argument('--vad_tier',  default="_vad", help = "Tier containing speech regions to classify")
 parser.add_argument('--overwrite', help = "overwrite _vad tier on existing .eaf file?", dest='overwrite', action='store_true')
 
+parser.add_argument('--cache_dir',  default="tmp/cache", help = "Directory for downloading pre-trained models")
+
 parser.set_defaults(overwrite=False)
 
 args = parser.parse_args()
@@ -62,6 +64,8 @@ if sample_rate != 16_000:
     waveform    = samp_to_16k(waveform)
 
 print("Loading VAD model ...")
+
+torch.hub.set_dir(args.cache_dir)
 
 vad_model, vad_utils = torch.hub.load(repo_or_dir='snakers4/silero-vad', model='silero_vad', force_reload=False)
 (get_speech_timestamps, save_audio, read_audio, VADIterator, collect_chunks) = vad_utils
