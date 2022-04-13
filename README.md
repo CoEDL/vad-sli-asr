@@ -129,10 +129,10 @@ python scripts/run_asr-by-w2v2.py \
 ```bash
 # Fine-tune a pre-trained wav2vec 2.0 model without a language model
 python scripts/train_asr-by-w2v2-ft.py \
-    facebook/wav2vec2-large-robust-ft-swbd-300h \   # Starting checkpoint
-    data/toy-example/my-fine-tuned-model \          # Output directory
-    data/toy-example/eng-sentences.tsv \            # TSV file for training data
-    data/toy-example/eng-sentences.tsv              # TSV file for evaluation data (using same data twice for illustration only!)
+    facebook/wav2vec2-large-robust-ft-swbd-300h \           # Starting checkpoint
+    data/toy-example/my-fine-tuned-model \                  # Output directory
+    data/toy-example/eng-sentences.tsv \                    # TSV file for training data
+    data/toy-example/eng-sentences.tsv                      # TSV file for evaluation data (using same data twice for illustration only!)
 ```
 
 ##### With a language model
@@ -141,11 +141,16 @@ python scripts/train_asr-by-w2v2-ft.py \
 # Build a 2-gram language model built using KenLM
 lmplz -o 2 < tmp/toy-example/eng-texts.txt > data/toy-example/eng-2gram.arpa
 
+# Add end-of-sentence token to make ARPA file compatible with pyctcdecode
+python scripts/helpers/add_eos-to-arpa.py \
+    data/toy-example/eng-2gram.arpa \
+    data/toy-example/eng-2gram_corrected.arpa
+
 # Fine-tune a pre-trained wav2vec 2.0 model with a 2-gram language model
 python scripts/train_asr-by-w2v2-ft.py \
-    facebook/wav2vec2-large-robust-ft-swbd-300h \   # Starting checkpoint
-    data/toy-example/my-fine-tuned-model \          # Output directory
-    data/toy-example/eng-sentences.tsv \            # TSV file for training data
-    data/toy-example/eng-sentences.tsv              # TSV file for evaluation data (using same data twice for illustration only!)
-    --lm_arpa data/toy-example/eng-2gram.arpa       # Language model file
+    facebook/wav2vec2-large-robust-ft-swbd-300h \           # Starting checkpoint
+    data/toy-example/my-fine-tuned-model \                  # Output directory
+    data/toy-example/eng-sentences.tsv \                    # TSV file for training data
+    data/toy-example/eng-sentences.tsv                      # TSV file for evaluation data (using same data twice for illustration only!)
+    --lm_arpa data/toy-example/eng-2gram_corrected.arpa     # Corrected language model file
 ```
