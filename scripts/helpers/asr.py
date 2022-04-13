@@ -10,9 +10,10 @@ from datasets import (
     Audio,
     Dataset,
     DatasetDict,
-    load_metric
+    enable_progress_bar,
+    load_metric,
+    disable_progress_bar
 )
-from datasets.utils import set_progress_bar_enabled
 from typing import Dict, List, Union
 from pyctcdecode import build_ctcdecoder
 from transformers import (
@@ -67,7 +68,7 @@ def create_vocab(dataset_dict, word_delimiter_token = "|", special_tokens = ["<s
 
 def preprocess_text(dataset_dict):
 
-    set_progress_bar_enabled(False)
+    disable_progress_bar()
 
     print("Pre-processing transcriptions ...")
     dataset_dict = dataset_dict.map(remove_special_characters)
@@ -75,7 +76,7 @@ def preprocess_text(dataset_dict):
     print("Creating vocabulary ...")
     vocab_path = create_vocab(dataset_dict)
 
-    set_progress_bar_enabled(True)
+    enable_progress_bar()
     
     return dataset_dict, vocab_path
 
