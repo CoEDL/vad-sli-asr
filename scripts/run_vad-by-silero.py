@@ -5,6 +5,8 @@ import sys
 import torch
 import torchaudio
 
+from helpers.eaf import get_eaf_file
+
 parser = ArgumentParser(
     prog='run_vad-by-silero',
     description='Voice activity detection with Silero. Writes intervals onto _vad tier in sidecar file.',
@@ -23,8 +25,7 @@ args = parser.parse_args()
 
 assert os.path.exists(args.wav_file), f"Specified wav file does not exist: {args.wav_file}"
 
-eaf_path   = os.path.splitext(args.wav_file)[0] + ".eaf"
-eaf_exists = os.path.exists(eaf_path)
+eaf_path, eaf_exists = get_eaf_file(args.wav_file)
 
 eaf_data   = Elan.Eaf(file_path=eaf_path if eaf_exists else None)
 eaf_tiers  = eaf_data.tiers.keys()
@@ -62,7 +63,7 @@ if sample_rate != 16_000:
 
 print("Loading VAD model ...")
 
-vad_model, vad_utils = torch.hub.load(repo_or_dir='snakers4/silero-vad:v3.1', model='silero_vad', force_reload=False)
+vad_model, vad_utils = torch.hub.load(repo_or_dir='snakers4/silero-vad', model='silero_vad', force_reload=False)
 (get_speech_timestamps, save_audio, read_audio, VADIterator, collect_chunks) = vad_utils
 
 print(f"Detecting speech regions in {args.wav_file} ...")
