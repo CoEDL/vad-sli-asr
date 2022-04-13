@@ -87,13 +87,15 @@ python scripts/run_sli-by-sblr.py data/toy-example/eng-fra_classifier.pkl data/t
 
 ### ASR
 
-#### Deployment (off-the-shelf model)
+#### Deployment
+
+##### Off-the-shelf model on HuggingFace Hub
 
 Use the pre-trained `facebook/wav2vec2-large-robust-ft-swbd-300h` on [HuggingFace Hub](https://huggingface.co/facebook/wav2vec2-large-robust-ft-swbd-300h) to transcribe regions of interest in the audio file `data/toy-example/raw/hello-goodbye.wav` (by default, regions of interest (ROI) are defined as those on the `_sli` tier matching the regular expression `eng`; note the optional `--roi_tier` and `--roi_filter` arguments):
 
 ```bash
 python scripts/run_asr-by-w2v2.py \
-    facebook/wav2vec2-large-robust-ft-swbd-300h \
+    facebook/wav2vec2-large-robust-ft-swbd-300h \   # Local path to model or HuggingFace repo
     data/toy-example/raw/hello-goodbye.wav \
     --roi_tier _sli \
     --roi_filter eng
@@ -102,6 +104,21 @@ python scripts/run_asr-by-w2v2.py \
 <p align="center">
     <img src="https://user-images.githubusercontent.com/9938298/163090228-e7e73b61-d946-433f-b720-5f13d31557d8.png">
 </p>
+
+##### A local model
+
+We have uploaded various models developed for the Muruwari project on [Zenodo](https://zenodo.org/communities/vad-sli-asr/). 
+
+```bash
+# Download train-100 model from Zenodo (model trained on 100% of data)
+wget -O tmp/train-100.zip "https://zenodo.org/record/6456264/files/train-100.zip?download=1"
+# Unzip model to tmp/train-100
+unzip tmp/train-100.zip -d tmp/
+
+python scripts/run_asr-by-w2v2.py \
+    tmp/train-100 \                                 # Local path to model or HuggingFace repo
+    data/toy-example/raw/hello-goodbye.wav
+```
 
 #### Training (fine-tuning an off-the-shelf model)
 
@@ -131,12 +148,4 @@ python scripts/train_asr-by-w2v2-ft.py \
     data/toy-example/eng-sentences.tsv \            # TSV file for training data
     data/toy-example/eng-sentences.tsv              # TSV file for evaluation data (using same data twice for illustration only!)
     --lm_arpa data/toy-example/eng-2gram.arpa       # Language model file
-```
-
-#### Deployment (your fine-tuned model)
-
-```bash
-python scripts/run_asr-by-w2v2.py \
-    data/toy-example/my-fine-tuned-model \          # Path to fine-tuned model
-    data/toy-example/raw/hello-goodbye.wav
 ```
