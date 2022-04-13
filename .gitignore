@@ -1,4 +1,4 @@
 env
 data/*
 !data/.gitkeep
-!data/train-sli/.gitkeep
+!data/toy-example/
