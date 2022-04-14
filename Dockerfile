@@ -33,6 +33,9 @@ RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y build-essential
     libbz2-dev \
     liblzma-dev
 
+# Make it easy to fetch large files from cloud storage
+RUN apt-get install -y rclone
+
 WORKDIR /tmp
 
 RUN git clone https://github.com/kpu/kenlm
