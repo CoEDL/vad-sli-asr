@@ -15,7 +15,7 @@ Python scripts for a speech processing pipeline with Voice Activity Detection (V
     git clone https://github.com/CoEDL/vad-sli-asr.git
     cd vad-sli-asr
     ```
-3. Launch Docker image (recommended):
+3. Install [Docker](https://docs.docker.com/get-docker/) and launch Docker image (recommended):
 
    a. CPU (use this if you are not sure about the GPU option)
       ```bash
