@@ -31,10 +31,10 @@ def get_sli_df(sli_train_dir):
 
     return sli_df
 
-def get_sb_encoder():
+def get_sb_encoder(save_dir="tmp"):
     sb_encoder = EncoderClassifier.from_hparams(
         source="speechbrain/lang-id-voxlingua107-ecapa",
-        savedir="tmp/",
+        savedir=save_dir,
         run_opts={"device": "cuda:1" if torch.cuda.is_available() else "cpu" }
     )
 
