@@ -145,13 +145,25 @@ def get_metrics_computer(processor):
     def compute_metrics(pred):
 
         pred_logits = pred.predictions
-        pred_ids = np.argmax(pred_logits, axis=-1)
-
         pred.label_ids[pred.label_ids == -100] = processor.tokenizer.pad_token_id
 
-        pred_str = processor.batch_decode(pred_ids)
-        # we do not want to group tokens when computing the metrics
-        label_str = processor.batch_decode(pred.label_ids, group_tokens=False)
+        if type(processor).__name__ == "Wav2Vec2ProcessorWithLM":
+
+            pred_str    = processor.batch_decode(pred_logits).text
+
+            label_chars = [ processor.tokenizer.convert_ids_to_tokens(l) for l in pred.label_ids ]
+            label_str   = [ "".join([ id for id in l if id not in processor.tokenizer.unique_no_split_tokens ]) for l in label_chars ]
+            label_str   = [ l.replace(processor.tokenizer.word_delimiter_token, " ").strip() for l in label_str ]
+
+        else:
+
+            pred_logits = pred.predictions
+            pred_ids = np.argmax(pred_logits, axis=-1)
+
+            pred_str = processor.batch_decode(pred_ids)
+            # we do not want to group tokens when computing the metrics
+            label_str = processor.batch_decode(pred.label_ids, group_tokens=False)
+
         wer = wer_metric.compute(predictions=pred_str, references=label_str)
 
         return {"wer": wer}
