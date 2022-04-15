@@ -35,7 +35,7 @@ def get_sb_encoder(save_dir="tmp"):
     sb_encoder = EncoderClassifier.from_hparams(
         source="speechbrain/lang-id-voxlingua107-ecapa",
         savedir=save_dir,
-        run_opts={"device": "cuda:1" if torch.cuda.is_available() else "cpu" }
+        run_opts={"device": "cuda" if torch.cuda.is_available() else "cpu" }
     )
 
     return sb_encoder
