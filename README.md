@@ -6,16 +6,30 @@ Python scripts for a speech processing pipeline with Voice Activity Detection (V
     <img src="docs/elan-eg.png">
 </p>
 
+## Table of contents
+- [Set up](#set-up)
+    - [Environment](#environment)
+    - [Data](#data)
+- [Usage](#usage)
+    - [VAD](#vad): [Deployment](#deployment)
+    - [SLI](#sli): [Deployment](#deployment-1), [Training](#training)
+    - [ASR](#asr): [Deployment](#deployment-2), [Training](#training)
+
 ## Set up
 
 ### Environment
 
-1. Clone this repository and change into directory:
+#### Docker (recommended)
+
+1. Install [Docker](https://docs.docker.com/get-docker/), if necessary
+
+2. Clone this repository and change into directory:
     ```bash
     git clone https://github.com/CoEDL/vad-sli-asr.git
     cd vad-sli-asr
     ```
-3. Install [Docker](https://docs.docker.com/get-docker/) and launch Docker image (recommended):
+
+3. Launch Docker image:
 
    a. CPU (use this if you are not sure about the GPU option)
       ```bash
@@ -25,7 +39,10 @@ Python scripts for a speech processing pipeline with Voice Activity Detection (V
       ```
       docker-compose run --rm gpu
       ```
-   c. Manual setup. See the commands and commentary in the `Dockerfile` for the full set of dependencies.
+
+#### Manual
+
+See the commands and commentary in the `Dockerfile` for the full set of dependencies.
 
 ### Data
 
