@@ -23,15 +23,16 @@ RUN pip uninstall -y torchtext && \
 # Dependencies for KenLM
 # Adapted from https://github.com/mpenagar/kenlm-docker/blob/master/Dockerfile.debian
 RUN apt-get update
-RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y build-essential \
-    cmake libboost-system-dev \
-    libboost-thread-dev \
-    libboost-program-options-dev \
-    libboost-test-dev \
-    libeigen3-dev \
-    zlib1g-dev \
-    libbz2-dev \
-    liblzma-dev
+RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y build-essential=12.8ubuntu1.1 \
+    cmake=3.16.3-1ubuntu1 \
+    libboost-system-dev=1.71.0.0ubuntu2 \
+    libboost-thread-dev=1.71.0.0ubuntu2 \
+    libboost-program-options-dev=1.71.0.0ubuntu2 \
+    libboost-test-dev=1.71.0.0ubuntu2 \
+    libeigen3-dev=3.3.7-2 \
+    zlib1g-dev=1:1.2.11.dfsg-2ubuntu1.3 \
+    libbz2-dev=1.0.8-2 \
+    liblzma-dev=5.2.4-1ubuntu1.1
 
 # Make it easy to fetch large files from cloud storage
 RUN apt-get install -y rclone
