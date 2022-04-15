@@ -13,7 +13,7 @@ Python scripts for a speech processing pipeline with Voice Activity Detection (V
 - [Usage](#usage)
     - [VAD](#vad): [Deployment](#deployment)
     - [SLI](#sli): [Deployment](#deployment-1), [Training](#training)
-    - [ASR](#asr): [Deployment](#deployment-2), [Training](#training-1)
+    - [ASR](#asr): [Deployment](#deployment-2), [Training](#training-fine-tuning-an-off-the-shelf-model)
 
 ## Set up
 
