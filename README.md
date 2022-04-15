@@ -112,7 +112,7 @@ Use the pre-trained `facebook/wav2vec2-large-robust-ft-swbd-300h` on [HuggingFac
 
 ```bash
 python scripts/run_asr-by-w2v2.py \
-    facebook/wav2vec2-large-robust-ft-swbd-300h \   # Local path to model or HuggingFace repo
+    facebook/wav2vec2-large-robust-ft-swbd-300h \
     data/toy-example/raw/hello-goodbye.wav \
     --roi_tier _sli \
     --roi_filter eng
@@ -133,7 +133,7 @@ wget -O tmp/train-100.zip "https://zenodo.org/record/6456264/files/train-100.zip
 unzip tmp/train-100.zip -d tmp/
 
 python scripts/run_asr-by-w2v2.py \
-    tmp/train-100 \                                 # Local path to model or HuggingFace repo
+    tmp/train-100 \
     data/toy-example/raw/hello-goodbye.wav
 ```
 
