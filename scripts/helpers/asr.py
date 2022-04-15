@@ -1,5 +1,6 @@
 import json
 import numpy as np
+import glob
 import os
 import pandas as pd
 import re
@@ -18,6 +19,7 @@ from typing import Dict, List, Union
 from pyctcdecode import build_ctcdecoder
 from transformers import (
     AutoConfig,
+    AutoProcessor,
     Wav2Vec2CTCTokenizer,
     Wav2Vec2FeatureExtractor,
     Wav2Vec2ForCTC,
@@ -170,7 +172,7 @@ def get_metrics_computer(processor):
 
     return compute_metrics
 
-def configure_w2v2_components(dataset, args, vocab_dict, w2v2_config={}):
+def configure_w2v2_for_training(dataset, args, vocab_dict, w2v2_config={}):
 
     feature_extractor_kwargs = w2v2_config["feature_extractor"] if "feature_extractor" in w2v2_config.keys() else {}
     model_kwargs = w2v2_config["model_kwargs"] if "model_kwargs" in w2v2_config.keys() else {}
@@ -216,6 +218,37 @@ def configure_w2v2_components(dataset, args, vocab_dict, w2v2_config={}):
     model.freeze_feature_encoder()
 
     return model, processor
+
+def configure_w2v2_for_inference(repo_path_or_name, cache_dir="tmp/"):
+
+    if os.path.isdir(repo_path_or_name):
+        cp_path   = glob.glob(os.path.join(repo_path_or_name, 'checkpoint-*'))[0]
+        model     = Wav2Vec2ForCTC.from_pretrained(cp_path, cache_dir=cache_dir)
+        processor = AutoProcessor.from_pretrained(repo_path_or_name, cache_dir=cache_dir)
+    else:
+        model     = Wav2Vec2ForCTC.from_pretrained(repo_path_or_name)
+        processor = AutoProcessor.from_pretrained(repo_path_or_name)
+
+    if torch.cuda.is_available():
+        model.to("cuda")
+
+    def predict(batch):
+        input_values = processor(batch["speech"], return_tensors="pt", padding="longest", sampling_rate=16_000).input_values
+
+        with torch.no_grad():
+            logits = model(input_values.to("cuda")).logits if torch.cuda.is_available() else model(input_values).logits
+
+        if type(processor).__name__ == 'Wav2Vec2ProcessorWithLM':
+            transcription = processor.batch_decode(logits.cpu().numpy()).text
+        else:
+            predicted_ids = torch.argmax(logits, dim=-1)
+            transcription = processor.batch_decode(predicted_ids)
+
+        batch["transcription"] = transcription[0] if isinstance(transcription, list) else transcription
+
+        return batch
+    
+    return model, processor, predict
 
 def configure_lm(processor, arpa_path, output_dir):
 

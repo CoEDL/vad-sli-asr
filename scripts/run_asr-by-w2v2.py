@@ -1,14 +1,12 @@
 from argparse import ArgumentParser
 from datasets import Dataset
-from tqdm import tqdm
-from transformers import logging, AutoModelForCTC, AutoProcessor
+from helpers.asr import configure_w2v2_for_inference
+from transformers import logging
 
-import glob
 import pandas as pd
 import pympi.Elan as Elan
 import os
 import re
-import torch
 import torchaudio
 
 parser = ArgumentParser(
@@ -26,7 +24,7 @@ parser.add_argument('--overwrite', help = "overwrite _asr tier on existing .eaf 
 
 parser.add_argument('--cache_dir',  default="tmp/cache", help = "Directory for downloading pre-trained models")
 
-parser.set_defaults(overwrite=False, cuda=torch.cuda.is_available())
+parser.set_defaults(overwrite=False)
 
 args = parser.parse_args()
 
@@ -58,35 +56,6 @@ else:
         exit()
 
 # All conditions met to actually do ASR
-
-def map_to_array(batch):
-    start_sample = max(0, batch["start_ms"] - 500) * 16
-    end_sample   = batch["end_ms"] * 16
-
-    batch["speech"] = waveform[:, start_sample:end_sample].squeeze().numpy()
-
-    return batch
-
-def make_map_to_pred(decode_with_lm=False):
-
-    def map_to_pred(batch):
-        input_values = processor(batch["speech"], return_tensors="pt", padding="longest", sampling_rate=16_000).input_values
-
-        with torch.no_grad():
-            logits = model(input_values.to("cuda")).logits if args.cuda else model(input_values).logits
-
-        if decode_with_lm is False:
-            predicted_ids = torch.argmax(logits, dim=-1)
-            transcription = processor.batch_decode(predicted_ids)
-        else:
-            transcription = processor.batch_decode(logits.cpu().numpy()).text
-
-        batch["transcription"] = transcription
-
-        return batch
-    
-    return map_to_pred
-
 waveform, sample_rate = torchaudio.load(args.wav_file)
 
 if sample_rate != 16_000:
@@ -94,19 +63,15 @@ if sample_rate != 16_000:
     samp_to_16k = torchaudio.transforms.Resample(orig_freq=sample_rate, new_freq=16_000)
     waveform    = samp_to_16k(waveform)
 
-if os.path.isdir(args.repo_path_or_name):
-    model_path  = glob.glob(os.path.join(args.repo_path_or_name, 'checkpoint-*'))[0]
-    model       = AutoModelForCTC.from_pretrained(model_path, cache_dir=args.cache_dir)
-    processor   = AutoProcessor.from_pretrained(args.repo_path_or_name, cache_dir=args.cache_dir)
-else:
-    model      = AutoModelForCTC.from_pretrained(args.repo_path_or_name, cache_dir=args.cache_dir)
-    processor  = AutoProcessor.from_pretrained(args.repo_path_or_name, cache_dir=args.cache_dir)
+def get_speech_excerpts(batch):
+    start_sample = batch["start_ms"] * 16
+    end_sample   = batch["end_ms"] * 16
 
-proc_has_lm = type(processor).__name__ == 'Wav2Vec2ProcessorWithLM'
-map_to_pred = make_map_to_pred(decode_with_lm=proc_has_lm)
+    batch["speech"] = waveform[:, start_sample:end_sample].squeeze().numpy()
 
-if args.cuda:
-    model.to("cuda")
+    return batch
+
+_, _, transcribe_speech = configure_w2v2_for_inference(args.repo_path_or_name, cache_dir=args.cache_dir)
 
 roi_annots  = eaf_data.get_annotation_data_for_tier(args.roi_tier)
 roi_annots  = [ r for r in roi_annots if bool(re.search(args.roi_filter, r[2])) ]
@@ -116,17 +81,17 @@ roi_dataset = Dataset.from_pandas(roi_dataset).remove_columns(['annotation'])
 
 print("Gathering speech regions into a dataset ...")
 
-roi_dataset = roi_dataset.map(map_to_array)
+roi_dataset = roi_dataset.map(get_speech_excerpts)
 
 print("Running ASR on each region of interest ...")
 
-result = roi_dataset.map(map_to_pred, batched=True, batch_size=1, remove_columns=["speech"])
+roi_dataset = roi_dataset.map(transcribe_speech)
 
 for index, region in enumerate(roi_annots):
 
     start_ms, end_ms, annot = region
 
-    annot = result['transcription'][index] if annot == 'eng' else ''
+    annot = roi_dataset['transcription'][index] if annot == 'eng' else ''
 
     eaf_data.add_annotation(args.asr_tier, start=start_ms, end=end_ms, value=annot)
 
