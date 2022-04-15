@@ -9,7 +9,7 @@ do
    facebook/wav2vec2-large-robust-ft-swbd-300h \
    "data/exps/asr/checkpoints/$i" \
    "data/exps/asr/datasets/$i.tsv" \
-    data/exps/asr/datasets/test.tsv
+   data/exps/asr/datasets/test.tsv
 done
 
 # Cross-validation experiments without language model

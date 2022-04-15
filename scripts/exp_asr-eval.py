@@ -7,8 +7,52 @@ from helpers.asr import configure_w2v2_for_inference
 from jiwer import wer, cer
 
 EVAL_MODELS_DATASETS = [
+    # Evaluation on the same test set using model trained using different amounts of data
+    ("data/exps/asr/checkpoints/train-100", "data/exps/asr/datasets/test.tsv"),
+    ("data/exps/asr/checkpoints/train-80", "data/exps/asr/datasets/test.tsv"),
+    ("data/exps/asr/checkpoints/train-60", "data/exps/asr/datasets/test.tsv"),
+    ("data/exps/asr/checkpoints/train-40", "data/exps/asr/datasets/test.tsv"),
+    ("data/exps/asr/checkpoints/train-20", "data/exps/asr/datasets/test.tsv"),
+    # Baseline model with no additional fine-tuning
+    ("facebook/wav2vec2-large-robust-ft-swbd-300h", "data/exps/asr/datasets/test.tsv"),
+
+    # Cross-validation on 10 different train-test splits with models trained using only
+    # 60% of training split and no language model
+    ("data/exps/asr/checkpoints/bootstrap/no-lm/b-1", "data/exps/asr/datasets/bootstrap-1-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/no-lm/b-2", "data/exps/asr/datasets/bootstrap-2-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/no-lm/b-3", "data/exps/asr/datasets/bootstrap-3-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/no-lm/b-4", "data/exps/asr/datasets/bootstrap-4-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/no-lm/b-5", "data/exps/asr/datasets/bootstrap-5-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/no-lm/b-6", "data/exps/asr/datasets/bootstrap-6-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/no-lm/b-7", "data/exps/asr/datasets/bootstrap-7-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/no-lm/b-8", "data/exps/asr/datasets/bootstrap-8-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/no-lm/b-9", "data/exps/asr/datasets/bootstrap-9-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/no-lm/b-10", "data/exps/asr/datasets/bootstrap-10-test20.tsv"),
+
+    # Cross-validation on 10 different train-test splits with models trained using only
+    # 60% of training split and a 2-gram language model
+    ("data/exps/asr/checkpoints/bootstrap/lm/b-1", "data/exps/asr/datasets/bootstrap-1-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/lm/b-2", "data/exps/asr/datasets/bootstrap-2-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/lm/b-3", "data/exps/asr/datasets/bootstrap-3-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/lm/b-4", "data/exps/asr/datasets/bootstrap-4-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/lm/b-5", "data/exps/asr/datasets/bootstrap-5-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/lm/b-6", "data/exps/asr/datasets/bootstrap-6-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/lm/b-7", "data/exps/asr/datasets/bootstrap-7-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/lm/b-8", "data/exps/asr/datasets/bootstrap-8-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/lm/b-9", "data/exps/asr/datasets/bootstrap-9-test20.tsv"),
+    ("data/exps/asr/checkpoints/bootstrap/lm/b-10", "data/exps/asr/datasets/bootstrap-10-test20.tsv")
+
+    # Baseline model with no additional fine-tuning
     ("facebook/wav2vec2-large-robust-ft-swbd-300h", "data/exps/asr/datasets/bootstrap-1-test20.tsv"),
-    ("data/exps/asr/checkpoints/bootstrap/no-lm/b-1", "data/exps/asr/datasets/bootstrap-1-test20.tsv")
+    ("facebook/wav2vec2-large-robust-ft-swbd-300h", "data/exps/asr/datasets/bootstrap-2-test20.tsv"),
+    ("facebook/wav2vec2-large-robust-ft-swbd-300h", "data/exps/asr/datasets/bootstrap-3-test20.tsv"),
+    ("facebook/wav2vec2-large-robust-ft-swbd-300h", "data/exps/asr/datasets/bootstrap-4-test20.tsv"),
+    ("facebook/wav2vec2-large-robust-ft-swbd-300h", "data/exps/asr/datasets/bootstrap-5-test20.tsv"),
+    ("facebook/wav2vec2-large-robust-ft-swbd-300h", "data/exps/asr/datasets/bootstrap-6-test20.tsv"),
+    ("facebook/wav2vec2-large-robust-ft-swbd-300h", "data/exps/asr/datasets/bootstrap-7-test20.tsv"),
+    ("facebook/wav2vec2-large-robust-ft-swbd-300h", "data/exps/asr/datasets/bootstrap-8-test20.tsv"),
+    ("facebook/wav2vec2-large-robust-ft-swbd-300h", "data/exps/asr/datasets/bootstrap-9-test20.tsv"),
+    ("facebook/wav2vec2-large-robust-ft-swbd-300h", "data/exps/asr/datasets/bootstrap-10-test20.tsv")
 ]
 
 EVAL_RESULTS = []
@@ -44,6 +88,6 @@ for model_path, testset_path in EVAL_MODELS_DATASETS:
     })
 
 results_df = pd.DataFrame(EVAL_RESULTS)
-results_df.to_csv("data/exps/asr/asr_wer-csr.csv")
+results_df.to_csv("data/exps/asr/asr_wer-csr.csv", index=False)
 
 print("Results written to data/exps/asr/asr_wer-csr.csv")

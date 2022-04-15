@@ -1,0 +1,126 @@
+---
+title: "SLI-ASR Evaluations"
+author: "Nay San"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: github_document
+---
+
+```{r setup, message=FALSE}
+library(tidyverse)
+library(coxed)
+
+# Functions to get bootstrapped confidence intervals
+conf_l <- function(x) { bca(x)[1] }
+conf_u <- function(x) { bca(x)[2] }
+
+sli_results <- read_csv("kshot-f1s.csv") %>%
+    mutate(
+    k = ifelse(k == -1, "All", as.character(k)),
+    k = factor(k, levels = c("1", "5", "10", "25", "50", "All"))
+  )
+
+asr_results <- read_csv("asr_wer-cer.csv")
+```
+
+## SLI
+
+### Mean F1
+
+```{r f1-plot}
+
+f1_stats <- sli_results %>% 
+  group_by(k) %>% 
+  summarise(
+    mean_f1 = mean(f1),
+    conf_l  = conf_l(f1),
+    conf_u  = conf_u(f1)
+  )
+
+f1_stats %>% 
+  ggplot(
+    aes(x = k, y = mean_f1)
+  ) +
+    geom_errorbar(aes(ymin = conf_l, ymax = conf_u), width=0.25, position=position_dodge(width=0.35)) +
+    scale_y_continuous(limits = c(0, 1), n.breaks = 5) +
+    theme_bw(base_size = 13) +
+    ylab("F1 (95% CI)") +
+    xlab("Number of training utterances per language") +
+    theme(
+      legend.position="top",
+      panel.grid.major = element_line(colour = "#DCDCDC")
+    )
+```
+
+```{r f1-table}
+knitr::kable(f1_stats)
+```
+
+### Mean differnce in F1
+
+```{r f1-mean-diff}
+sli_results %>%
+    spread(key=k, value=f1) %>% 
+    mutate(
+        All_v_01 = All - `1`,
+        All_v_05 = All - `5`,
+        All_v_10 = All - `10`,
+        All_v_25 = All - `25`,
+        All_v_50 = All - `50`
+    ) %>%
+    select(contains("All_")) %>%
+    gather(key = "comparison", value = "f1_diff") %>%
+    group_by(comparison) %>%
+    summarise(
+        mean_diff  = mean(f1_diff),
+        conf_l     = conf_l(f1_diff),
+        conf_u     = conf_u(f1_diff)
+    ) %>%
+    mutate(
+        conf_width = conf_u - conf_l
+    ) %>%
+  knitr::kable()
+```
+
+## ASR
+
+### Training set size
+
+```{r trainsubset}
+asr_results %>%
+  # Keep same test set, use different-sized subsets of training set
+  filter(testset == "test.tsv") %>%
+  knitr::kable()
+```
+
+### Cross-validation experiments
+
+```{r cross-validation, warning=FALSE}
+asr_wers <- asr_results %>%
+  # Using new train-test splits
+  filter(testset != "test.tsv") %>%
+  mutate(
+    wer = wer * 100,
+    is_baseline = model == "wav2vec2-large-robust-ft-swbd-300h",
+    
+    `Fine-tuning` = ifelse(model == "wav2vec2-large-robust-ft-swbd-300h", "None", "39 minutes"),
+    `Fine-tuning` = factor(`Fine-tuning`, levels = c("None", "39 minutes")),
+    `Language Model` = ifelse(model_lm, "2-gram", "None"),
+    `Language Model` = factor(`Language Model`, levels = c("None", "2-gram"))
+  ) 
+
+asr_wers %>%
+  mutate(text = "") %>% 
+  ggplot(aes(x = `Fine-tuning`, y=wer, group=`Language Model`)) +
+  geom_text(aes(label=text)) +
+  geom_boxplot(
+    data = filter(asr_wers, is_baseline),
+    aes(fill=`Language Model`), width=0.125) +
+  geom_boxplot(
+    data = filter(asr_wers, !is_baseline),
+    aes(fill=`Language Model`), width=0.25) +
+  theme_bw(base_size = 14) +
+  theme(legend.position="bottom") +
+  ylab("Word error rate (WER)") +
+  scale_fill_manual(values=c("#A9A9A9", "#FFFFFF")) +
+  scale_y_continuous(limits = c(10,40))
+```
