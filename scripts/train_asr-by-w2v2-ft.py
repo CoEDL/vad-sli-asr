@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 from datasets import load_metric
 from helpers.asr import (
     configure_lm,
-    configure_w2v2_components,
+    configure_w2v2_for_training,
     DataCollatorCTCWithPadding,
     dataset_from_dict,
     get_metrics_computer,
@@ -66,7 +66,7 @@ w2v2_config = {
 
 dataset, vocab_dict = preprocess_text(dataset)
 
-model, processor = configure_w2v2_components(dataset, args, vocab_dict, w2v2_config)
+model, processor = configure_w2v2_for_training(dataset, args, vocab_dict, w2v2_config)
 
 if args.lm_arpa is not None:
     processor = configure_lm(processor, args.lm_arpa, args.output_dir)
