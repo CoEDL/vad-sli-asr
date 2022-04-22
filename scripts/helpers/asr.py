@@ -38,7 +38,7 @@ def dataset_from_dict(dataset_dict):
 
 def remove_special_characters(batch):
     chars_to_ignore_regex = '[\,\?\.\!\-\;\:\"\“\%\‘\”\�]'
-    batch["sentence"] = re.sub(chars_to_ignore_regex, '', batch["sentence"]).lower() + " "
+    batch["sentence"] = re.sub(chars_to_ignore_regex, '', batch["sentence"])
     
     return batch
 
@@ -75,7 +75,6 @@ def preprocess_text(dataset_dict):
     print("Pre-processing transcriptions ...")
     dataset_dict = dataset_dict.map(remove_special_characters)
 
-    print("Creating vocabulary ...")
     vocab_path = create_vocab(dataset_dict)
 
     enable_progress_bar()
@@ -143,6 +142,7 @@ class DataCollatorCTCWithPadding:
 def get_metrics_computer(processor):
 
     wer_metric = load_metric("wer")
+    cer_metric = load_metric("cer")
 
     def compute_metrics(pred):
 
@@ -159,9 +159,15 @@ def get_metrics_computer(processor):
         # Retrieve labels as characters, e.g. 'hello', from label_ids, e.g. [5, 3, 10, 10, 2] (where 5 = 'h')
         label_str = processor.tokenizer.batch_decode(pred.label_ids, group_tokens=False)
         
-        wer = wer_metric.compute(predictions=pred_str, references=label_str)
+        print(pd.DataFrame({
+            "pred_str"  : pred_str,
+            "label_str" : label_str
+        }))
 
-        return {"wer": wer}
+        wer = wer_metric.compute(predictions=pred_str, references=label_str)
+        cer = cer_metric.compute(predictions=pred_str, references=label_str)
+
+        return {"wer": wer, "cer": cer}
 
     return compute_metrics
 
@@ -170,7 +176,7 @@ def configure_w2v2_for_training(dataset, args, vocab_dict, w2v2_config={}):
     feature_extractor_kwargs = w2v2_config["feature_extractor"] if "feature_extractor" in w2v2_config.keys() else {}
     model_kwargs = w2v2_config["model_kwargs"] if "model_kwargs" in w2v2_config.keys() else {}
 
-    if args.use_target_vocab:
+    if args.use_target_vocab is True:
         vocab_path = os.path.join(args.output_dir, 'vocab.json')
 
         print(f"Writing created vocabulary to {vocab_path}")
@@ -183,6 +189,7 @@ def configure_w2v2_for_training(dataset, args, vocab_dict, w2v2_config={}):
 
     else:
 
+        print("Using vocabulary from tokenizer ...")
         tokenizer = Wav2Vec2CTCTokenizer.from_pretrained(args.repo_path_or_name)
 
     feature_extractor = Wav2Vec2FeatureExtractor(**feature_extractor_kwargs)

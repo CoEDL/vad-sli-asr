@@ -13,6 +13,9 @@ EVAL_MODELS_DATASETS = [
     ("data/exps/asr/checkpoints/train-60", "data/exps/asr/datasets/test.tsv"),
     ("data/exps/asr/checkpoints/train-40", "data/exps/asr/datasets/test.tsv"),
     ("data/exps/asr/checkpoints/train-20", "data/exps/asr/datasets/test.tsv"),
+    ("data/exps/asr/checkpoints/train-10", "data/exps/asr/datasets/test.tsv"),
+    ("data/exps/asr/checkpoints/train-05", "data/exps/asr/datasets/test.tsv"),
+    ("data/exps/asr/checkpoints/train-01", "data/exps/asr/datasets/test.tsv"),
     # Baseline model with no additional fine-tuning
     ("facebook/wav2vec2-large-robust-ft-swbd-300h", "data/exps/asr/datasets/test.tsv"),
 

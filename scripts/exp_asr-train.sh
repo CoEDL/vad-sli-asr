@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 # Data subset experiments 
-declare -a subsets=("train-100" "train-80" "train-60" "train-40" "train-20")
+declare -a subsets=("train-100" "train-80" "train-60" "train-40" "train-20" "train-10" "train-05" "train-01")
 
 for i in "${subsets[@]}"
 do
@@ -9,7 +9,8 @@ do
    facebook/wav2vec2-large-robust-ft-swbd-300h \
    "data/exps/asr/checkpoints/$i" \
    "data/exps/asr/datasets/$i.tsv" \
-   data/exps/asr/datasets/test.tsv
+   data/exps/asr/datasets/test.tsv \
+   --use_target_vocab False
 done
 
 # Cross-validation experiments without language model

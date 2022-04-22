@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import torch
 
@@ -14,6 +15,7 @@ from helpers.asr import (
     process_data
 )
 from transformers import (
+    EarlyStoppingCallback,
     logging,
     Trainer,
     TrainingArguments
@@ -38,6 +40,9 @@ parser.add_argument('--hft_logging', default=40, help='HuggingFace Transformers 
 
 args = parser.parse_args()
 
+# Turns out bool('False') evaluates to True in Python (only bool('') is False)
+args.use_target_vocab = False if args.use_target_vocab == 'False' else True
+
 logging.set_verbosity(args.hft_logging)
 
 # For debugging
@@ -45,6 +50,7 @@ logging.set_verbosity(args.hft_logging)
 # args.train_tsv = 'data/train-asr/train.tsv'
 # args.eval_tsv  = 'data/train-asr/test.tsv'
 # args.output_dir = 'data/asr-temp'
+# args.use_target_vocab = False
 
 os.makedirs(args.output_dir, exist_ok=True)
 
@@ -76,25 +82,38 @@ dataset = process_data(dataset, processor)
 # Set logging to 'INFO' or else progress bar gets hidden
 logging.set_verbosity(20)
 
+n_epochs   = 50
+batch_size = 32
+
+# How many epochs between evals?
+eps_b_eval = 5 
+# Save/Eval/Logging steps
+sel_steps  = int(math.ceil(len(dataset['train']) / batch_size) * eps_b_eval)
+
 training_args = TrainingArguments(
     output_dir=args.output_dir,
     group_by_length=True,
-    per_device_train_batch_size=32,
+    per_device_train_batch_size=batch_size,
     gradient_accumulation_steps=1,
     evaluation_strategy="steps",
-    num_train_epochs=50,
+    num_train_epochs=n_epochs,
     fp16=True if torch.cuda.is_available() else False,
     seed=7135,
-    save_steps=400,
-    eval_steps=400,
-    logging_steps=400,
+    save_steps=sel_steps,
+    eval_steps=sel_steps,
+    logging_steps=sel_steps,
     learning_rate=1e-4,
-    warmup_steps=500,
-    save_total_limit=1,
+    # Warm up: 100 steps or 10% of total optimisation steps
+    warmup_steps=min(100, int(0.1 * sel_steps * n_epochs)),
     report_to="none",
     # 2022-03-09: manually set optmizier to PyTorch implementation torch.optim.AdamW
     # 'adamw_torch' to get rid of deprecation warning for default optimizer 'adamw_hf'
-    optim="adamw_torch"
+    optim="adamw_torch",
+    metric_for_best_model="wer",
+    save_total_limit=5,
+    load_best_model_at_end = True,
+    # Lower WER is better
+    greater_is_better=False
 )
 
 trainer = Trainer(
@@ -105,6 +124,7 @@ trainer = Trainer(
     train_dataset=dataset['train'],
     eval_dataset=dataset['eval'],
     tokenizer=processor.feature_extractor,
+    callbacks = [EarlyStoppingCallback(early_stopping_patience=3)]
 )
 
 print("Training model ...")
