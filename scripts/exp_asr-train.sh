@@ -19,8 +19,9 @@ do
    python scripts/train_asr-by-w2v2-ft.py \
    facebook/wav2vec2-large-robust-ft-swbd-300h \
    "data/exps/asr/checkpoints/bootstrap/no-lm/b-$j" \
-   "data/exps/asr/datasets/bootstrap-$j-train60.tsv" \
-   "data/exps/asr/datasets/bootstrap-$j-test20.tsv"
+   "data/exps/asr/datasets/bootstrap-$j-train01.tsv" \
+   "data/exps/asr/datasets/bootstrap-$j-test20.tsv" \
+   --use_target_vocab False
 done
 
 # Cross-validation experiments with a bigram language model
@@ -29,7 +30,8 @@ do
    python scripts/train_asr-by-w2v2-ft.py \
    facebook/wav2vec2-large-robust-ft-swbd-300h \
    "data/exps/asr/checkpoints/bootstrap/lm/b-$k" \
-   "data/exps/asr/datasets/bootstrap-$k-train60.tsv" \
+   "data/exps/asr/datasets/bootstrap-$k-train01.tsv" \
    "data/exps/asr/datasets/bootstrap-$k-test20.tsv" \
-   --lm_arpa data/exps/asr/2gram_correct.arpa
+   --lm_arpa data/exps/asr/datasets/20220422_2gram-correct.arpa \
+   --use_target_vocab False
 done

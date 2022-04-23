@@ -86,8 +86,8 @@ for model_path, testset_path in EVAL_MODELS_DATASETS:
         "model" : os.path.basename(model_path),
         "model_lm" : type(processor).__name__ == 'Wav2Vec2ProcessorWithLM',
         "testset" : os.path.basename(testset_path),
-        "wer" : round(wer(test_ds['sentence'], test_ds['transcription']), 2),
-        "cer" : round(cer(test_ds['sentence'], test_ds['transcription']), 2)
+        "wer" : round(wer(test_ds['sentence'], test_ds['transcription']), 3),
+        "cer" : round(cer(test_ds['sentence'], test_ds['transcription']), 3)
     })
 
 results_df = pd.DataFrame(EVAL_RESULTS)

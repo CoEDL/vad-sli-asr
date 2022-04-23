@@ -102,8 +102,8 @@ asr_wers <- asr_results %>%
     wer = wer * 100,
     is_baseline = model == "wav2vec2-large-robust-ft-swbd-300h",
     
-    `Fine-tuning` = ifelse(model == "wav2vec2-large-robust-ft-swbd-300h", "None", "39 minutes"),
-    `Fine-tuning` = factor(`Fine-tuning`, levels = c("None", "39 minutes")),
+    `Fine-tuning` = ifelse(model == "wav2vec2-large-robust-ft-swbd-300h", "None", "<1 minute"),
+    `Fine-tuning` = factor(`Fine-tuning`, levels = c("None", "<1 minute")),
     `Language Model` = ifelse(model_lm, "2-gram", "None"),
     `Language Model` = factor(`Language Model`, levels = c("None", "2-gram"))
   ) 

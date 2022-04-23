@@ -1,7 +1,7 @@
 SLI-ASR Evaluations
 ================
 Nay San
-15 April, 2022
+23 April, 2022
 
 ``` r
 library(tidyverse)
@@ -108,14 +108,17 @@ asr_results %>%
   knitr::kable()
 ```
 
-| model                              | model\_lm | testset  |  wer |  cer |
-|:-----------------------------------|:----------|:---------|-----:|-----:|
-| train-100                          | FALSE     | test.tsv | 0.11 | 0.05 |
-| train-80                           | FALSE     | test.tsv | 0.13 | 0.05 |
-| train-60                           | FALSE     | test.tsv | 0.16 | 0.06 |
-| train-40                           | FALSE     | test.tsv | 0.37 | 0.14 |
-| train-20                           | FALSE     | test.tsv | 0.98 | 0.78 |
-| wav2vec2-large-robust-ft-swbd-300h | FALSE     | test.tsv | 0.37 | 0.22 |
+| model                              | model\_lm | testset  |   wer |   cer |
+|:-----------------------------------|:----------|:---------|------:|------:|
+| train-100                          | FALSE     | test.tsv | 0.101 | 0.042 |
+| train-80                           | FALSE     | test.tsv | 0.101 | 0.044 |
+| train-60                           | FALSE     | test.tsv | 0.118 | 0.052 |
+| train-40                           | FALSE     | test.tsv | 0.123 | 0.055 |
+| train-20                           | FALSE     | test.tsv | 0.132 | 0.061 |
+| train-10                           | FALSE     | test.tsv | 0.134 | 0.061 |
+| train-05                           | FALSE     | test.tsv | 0.151 | 0.067 |
+| train-01                           | FALSE     | test.tsv | 0.191 | 0.088 |
+| wav2vec2-large-robust-ft-swbd-300h | FALSE     | test.tsv | 0.363 | 0.215 |
 
 ### Cross-validation experiments
 
@@ -127,8 +130,8 @@ asr_wers <- asr_results %>%
     wer = wer * 100,
     is_baseline = model == "wav2vec2-large-robust-ft-swbd-300h",
     
-    `Fine-tuning` = ifelse(model == "wav2vec2-large-robust-ft-swbd-300h", "None", "39 minutes"),
-    `Fine-tuning` = factor(`Fine-tuning`, levels = c("None", "39 minutes")),
+    `Fine-tuning` = ifelse(model == "wav2vec2-large-robust-ft-swbd-300h", "None", "<1 minute"),
+    `Fine-tuning` = factor(`Fine-tuning`, levels = c("None", "<1 minute")),
     `Language Model` = ifelse(model_lm, "2-gram", "None"),
     `Language Model` = factor(`Language Model`, levels = c("None", "2-gram"))
   ) 
