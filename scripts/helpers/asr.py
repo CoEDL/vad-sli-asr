@@ -44,7 +44,7 @@ def remove_special_characters(batch):
 
 def extract_all_chars(batch):
     all_text = " ".join(batch["sentence"])
-    vocab = list(set(all_text))
+    vocab = sorted(list(set(all_text)))
     
     return {"vocab": [vocab], "all_text": [all_text]}
 
