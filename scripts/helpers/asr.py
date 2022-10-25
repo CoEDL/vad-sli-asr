@@ -57,7 +57,7 @@ def create_vocab(dataset_dict, word_delimiter_token = "|", special_tokens = ["<s
 
         vocab_list.extend(vocab["vocab"][0])
 
-    vocab_list = list(set(vocab_list))
+    vocab_list = sorted(list(set(vocab_list)))
     vocab_dict = { v: k for k, v in enumerate(vocab_list) }
 
     vocab_dict[word_delimiter_token] = vocab_dict[" "]
@@ -66,6 +66,8 @@ def create_vocab(dataset_dict, word_delimiter_token = "|", special_tokens = ["<s
     for t in special_tokens:
         vocab_dict[t] = len(vocab_dict)
 
+    vocab_dict = dict(sorted(vocab_dict.items(), key=lambda item: item[1]))
+        
     return vocab_dict
 
 def preprocess_text(dataset_dict):
